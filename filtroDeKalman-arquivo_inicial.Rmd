@@ -1,0 +1,196 @@
+---
+title: ''
+output: pdf_document
+---
+
+```{r functions_definition, echo=FALSE}
+
+
+plotGraphs<-function(ideal,estimado,medido,sk,innt){
+  
+  t <- 1:length(ideal)
+  
+  aa <- (estimado-medido)^2/medido
+  xx <- sum(aa)
+  
+  
+  par(mfcol=c(3,1))
+  
+  plot(medido,pch=".",col="RED")
+  points(ideal,pch=".")
+  points(estimado,pch=".",col="GREEN",type="l")
+  legend("bottomright",legend=c('Posição Medida','Posição idealizada','Posição Estimada'),fil=c("RED","BLACK","GREEN"))
+  
+  plot(t,aa,pch=".",type="l",col="RED");
+  points(t,-sqrt(sk)^2,pch=".",col="BLUE")
+  points(t,sqrt(sk)^2,pch=".",col="GREEN")
+  legend("bottomright",legend=c('Erros de Estimação(Inovação)','Limite Superior do Intervalo de Confiança','Limite Inferior do Intervalo de Confiança'),fil=c("RED","BLUE","GREEN"))
+  
+  plot(t, innt^2,pch=".",type="l")
+}
+
+
+simular <- function(n,error,seed=12345){
+  
+  set.seed(seed)
+  n <- n                           # Número de observações
+  
+  u <- 1                                # Aceleração idealizada para o experimento
+  
+  dt <- 0.1                             # Menor intervalo tempo medido no simulador
+  
+  measnoise <- 10                       # Erro de medida da posição
+  accelnoise <- error                   # Erro da aceleração
+
+  a <- matrix(data=c(1, 0, dt, 1), ncol=2,nrow=2)
+  b <- matrix(data=c(dt^2/2, dt), nrow=2, ncol=1)
+  c <- matrix(data=c(1,1),nrow=1,ncol=2)
+  x <- matrix(data=c(0,0),nrow=2,ncol=1)# Posição inicial
+  xhat <- matrix(data=c(14,14),nrow=2,ncol=1)                             # Posição estimada inicial
+  Sz <- measnoise^2                     # Variância do ruído da medida
+  Sw <- accelnoise^2*matrix(data=c(dt^4, dt^3/2, dt^3/2, dt^2), 
+                            nrow=2, ncol=2) # Estimativa
+  P <- matrix(data=c(15,15,15,15),nrow=2,ncol=2)     # Matriz de covariância de estado (pode ser com qualquer coisa)
+  Pr <- array(dim=c(n,2,2))
+  pos <- array(dim=n)                    # Posição idealizada (durante todo o experimento)
+  pos[1] <-0
+  poshat <- array(dim=n)                  # Posição estimada (durante todo o experimento)
+  poshat[1] <- 0 
+  posmeas <- array(dim=n)                # Posição medida (durante todo o experimento)
+  posmeas[1] <- 0
+  vel <- array(dim=n)                    # Velocidade idealizada (durante todo o experimento)
+  vel[1] <- 0
+  velhat <- array(dim=n)                 # Velocidade estimada (durante todo o experimento)
+  velhat[1] <- 0
+  zz <- array(dim=n)                     # Posição + ruído (durante todo o experimento)
+  zz[1] <- 0
+  
+  Sk <- array(dim=n)
+  qk <- array(dim=n)
+  Innt <- array(dim=n)
+  
+  for(t in 1:n){
+    ProcessNoise <- accelnoise * matrix(data=c(dt^2/2*rnorm(n=1), dt*rnorm(n=1)),
+                                        nrow=2, ncol=1) # Ruído
+    x <- a%*%x + b*u + ProcessNoise   # Posição "correta" + ruído
+    MeasNoise <- measnoise * rnorm(n=1,sd = accelnoise) # Ruído da medição
+    y <- c%*%x + MeasNoise              # Medição do ruído
+    xhat <- a%*%xhat + b%*%u            # Estimação da posição
+    Inn <- y - c%*%xhat                 # Matriz erro (innovation)
+    
+    s <- c%*%P%*%t(c) + Sz
+    
+    K <- a%*%P%*%t(c)%*%solve(s)        # Ganho
+    
+    xhat <- xhat + K%*%Inn              # Correção da estimação
+    Pr[t,,] <- P
+    P <- a%*%P%*%t(a) - a%*%P%*%t(c)%*%solve(s)%*%c%*%P%*%t(a) + 
+      Sw # Matriz de covariância (grau de incerteza das estimativas)
+    
+    Sk[t] <- c%*%P%*%t(c)+Sz
+    
+    Innt[t] <- Inn
+    
+    qk[t] <- Inn%*%solve(c%*%P%*%t(c) +Sz)%*%Inn
+    
+    pos[t] <- x[1]
+    posmeas[t] <- y
+    poshat[t] <- xhat[1]
+    vel[t] <- x[2]
+    velhat[t] <- xhat[2]
+    
+    z <- a%*%x + b%*%u # Posição sem ruído (idealizada)
+    zz[t] <- z[1]
+  }
+
+  poshatComp<-chisq.test(matrix(data=c(pos-min(posmeas),poshat-min(posmeas)),nrow=n,ncol=2))
+  
+  
+  posmeasComp<-chisq.test(matrix(data=c(posmeas-min(posmeas),pos-min(posmeas)),nrow=n,ncol=2))
+  pose <- data.frame(pos=pos,poshat=poshat,posmeas=posmeas,sk=Sk,innt=Innt)
+  return <- c(poshatComp,posmeasComp,pose)
+}
+```
+
+
+Podemos fazer consultas sobres os dados retornados pela simulação. Percebam que não foram usados todos (olhando os índices da variável simulado), os outros dados são dados do teste $\chi^2$ criados a longo do teste em si. Não creio que sirvam de muita coisa, então deixei de fora.
+
+Os valores recuperados podem ser exibidos em chunks (com formatação padrão), ou *inline*, onde podemos aplicar formatação Markdown.
+
+Notem que os valores recuperados e usados *inline* estão, em sua maioria, entre \$, isto devido problemas que podem ocorrer com números expressos em notação científica, que o Latex sabe trabalhar, mas o Markdown, não. 
+
+Simulação para n=200
+--------------------
+
+Segue abaixo modelo de simulações
+
+```{r simulation_call_1, echo=FALSE}
+simulado <- simular(200,3) #Simula
+
+
+pos <- as.matrix(simulado[19]$pos)
+poshat <- as.matrix(simulado[20]$poshat)
+posmeas <- as.matrix(simulado[21]$posmeas)
+sk <- as.matrix(simulado[22]$sk)
+innt <- as.matrix(simulado[23]$innt)
+```
+
+Para este exemplo foi realizada simulação usando intervalo de tempo de `r length(sk)*0.1` segundos.
+
+O método usado foi: `r simulado[4]$method`.
+
+Para comparação entre a posição ideal e a estimada foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[1]$statistic`$
+- $\upsilon$: $`r simulado[2]$parameter`$
+- Probabilidade de Semelhança: $`r simulado[3]$p.value`$
+
+Para comparação entre a posição ideal e a medida foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[10]$statistic`$
+- $\upsilon$: $`r simulado[11]$parameter`$
+- Probabilidade de Semelhança: $`r simulado[12]$p.value`$
+
+Plotando os gráficos da simulação
+
+```{r simulation_plot_1, echo=FALSE,fig.height=10,fig.width=8}
+plotGraphs(pos, poshat, posmeas, sk, innt)
+```
+
+
+```{r simulation_call_2, echo=FALSE}
+simulado <- simular(1000,3) #Simula
+
+
+pos <- as.matrix(simulado[19]$pos)
+poshat <- as.matrix(simulado[20]$poshat)
+posmeas <- as.matrix(simulado[21]$posmeas)
+sk <- as.matrix(simulado[22]$sk)
+innt <- as.matrix(simulado[23]$innt)
+```
+
+Simulação para n=1000
+---------------------
+
+Para este exemplo foi realizada simulação usando intervalo de tempo de `r length(sk)*0.1` segundos.
+
+O método usado foi: `r simulado[4]$method`.
+
+Para comparação entre a posição ideal e a estimada foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[1]$statistic`$
+- $\upsilon$: $`r simulado[2]$parameter`$
+- Probabilidade de Semelhança: $`r simulado[3]$p.value`$
+
+Para comparação entre a posição ideal e a medida foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[10]$statistic`$
+- $\upsilon$: $`r simulado[11]$parameter`$
+- Probabilidade de Semelhança: $`r simulado[12]$p.value`$
+
+Plotando os gráficos da simulação
+
+```{r simulation_plot_2, echo=FALSE,fig.height=10,fig.width=8}
+plotGraphs(pos, poshat, posmeas, sk, innt)
+```
+

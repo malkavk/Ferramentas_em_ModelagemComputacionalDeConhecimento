@@ -47,7 +47,7 @@ $y_k = \begin{bmatrix}
 
 
 
-```{r functions_definition, echo=FALSE}
+```{r functions_definition, echo=TRUE}
 
 
 plotGraphs<-function(ideal,estimado,medido,sk,innt){
@@ -73,11 +73,21 @@ plotGraphs<-function(ideal,estimado,medido,sk,innt){
   plot(t, innt^2,pch=".",type="l")
 }
 
+```
+
+
+Podemos fazer consultas sobres os dados retornados pela simulação. Percebam que não foram usados todos (olhando os índices da variável simulado), os outros dados são dados do teste $\chi^2$ criados a longo do teste em si. Não creio que sirvam de muita coisa, então deixei de fora.
+
+Os valores recuperados podem ser exibidos em chunks (com formatação padrão), ou *inline*, onde podemos aplicar formatação Markdown.
+
+Notem que os valores recuperados e usados *inline* estão, em sua maioria, entre \$, isto devido problemas que podem ocorrer com números expressos em notação científica, que o Latex sabe trabalhar, mas o Markdown, não. 
+
+```{r functions_definition, echo=TRUE}
 
 simular <- function(n,error,seed=12345){
   
   set.seed(seed)
-  n <- n                           # Número de observações
+  n <- n                                # Número de observações
   
   u <- 1                                # Aceleração idealizada para o experimento
   
@@ -156,19 +166,12 @@ simular <- function(n,error,seed=12345){
 }
 ```
 
-
-Podemos fazer consultas sobres os dados retornados pela simulação. Percebam que não foram usados todos (olhando os índices da variável simulado), os outros dados são dados do teste $\chi^2$ criados a longo do teste em si. Não creio que sirvam de muita coisa, então deixei de fora.
-
-Os valores recuperados podem ser exibidos em chunks (com formatação padrão), ou *inline*, onde podemos aplicar formatação Markdown.
-
-Notem que os valores recuperados e usados *inline* estão, em sua maioria, entre \$, isto devido problemas que podem ocorrer com números expressos em notação científica, que o Latex sabe trabalhar, mas o Markdown, não. 
-
 Simulação para n=200
 --------------------
 
 Segue abaixo modelo de simulações
 
-```{r simulation_call_1, echo=FALSE}
+```{r simulation_call_1, echo=TRUE}
 simulado <- simular(200,3) #Simula
 
 
@@ -202,7 +205,7 @@ plotGraphs(pos, poshat, posmeas, sk, innt)
 ```
 
 
-```{r simulation_call_2, echo=FALSE}
+```{r simulation_call_2, echo=TRUE}
 simulado <- simular(1000,3) #Simula
 
 

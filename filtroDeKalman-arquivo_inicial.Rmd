@@ -47,7 +47,11 @@ $x_{k+1} =
 $y_k = \begin{bmatrix}
 1 & 0 \end{bmatrix}  x_k + z_k$
 
-
+$K_k = AP_kC^T(CP_kC^T + S_z)^{-1}$
+  
+$\widehat{x}_{k+1} = (A\widehat{x}_k + Bu_k) + K_k (y_{k+1}-C\widehat{x}_{k})$
+  
+$P_{k+1} = AP_kA^T+S_w-AP_kC^TS_z^{-1}CP_kA^T$
 
 ```{r functions_definition, echo=TRUE}
 

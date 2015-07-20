@@ -3,6 +3,18 @@ title: ''
 output: pdf_document
 ---
 
+---
+references:
+- id: aguirreintrodução
+  title: Introdução à Identificação de Sistemas -- Técnicas Lineares e Não-Lineares Aplicadas a Sistemas Reais
+  author:
+  - family: Aguirre
+    given: L.A.
+  URL: 'https://books.google.com.br/books?id=f9IwE7Ph0fYC'
+  ISBN: 9788570415844
+  publisher: Editora UFMG
+---
+
 Introdução
 --------------------------------------------------------------------
 

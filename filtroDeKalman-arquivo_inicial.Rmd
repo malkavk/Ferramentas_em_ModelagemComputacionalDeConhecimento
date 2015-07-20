@@ -18,6 +18,7 @@ Neste trabalho estuda-se um sistema linear estocástico e estático, que apesar de
 
 
 
+
 ```{r functions_definition, echo=FALSE}
 
 

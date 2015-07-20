@@ -3,17 +3,35 @@ title: ''
 output: pdf_document
 ---
 
-Introdução
+IntroduÃ§Ã£o
+--------------------------------------------------------------------
 
-Existem duas formas básicas de estruturar um modelo: pela abordagem fenomenológica ou pela abordagem empírica. Na primeira há exigência de um conhecimento prévio da natureza de um sistema, na segunda os modelos são construídos paralelamente ao experimento, sem exigir um conhecimento da essência do sistema.
+Existem duas formas bÃ¡sicas de estruturar um modelo: pela abordagem fenomenolÃ³gica ou pela abordagem emp?rica. Na primeira hÃ¡ exigÃªncia de um conhecimento pr?vio da natureza de um sistema, na segunda os modelos s?o constru?dos paralelamente ao experimento, sem exigir um conhecimento da ess?ncia do sistema.
 
-Do modo geral, os modelos podem ser classificados como estáticos ou dinâmicos, discretos ou contínuos, determinísticos ou estocásticos, paramétricos ou não paramétricos, lineares ou não lineares. Conforme a classificação, que não são mutuamente excludentes, têm-se as ferramentas adequadas para o estudo do sistema.
+Do modo geral, os modelos podem ser classificados como est?ticos ou din?micos, discretos ou cont?nuos, determin?sticos ou estoc?sticos, param?tricos ou n?o param?tricos, lineares ou n?o lineares. Conforme a classifica??o, que n?o s?o mutuamente excludentes, t?m-se as ferramentas adequadas para o estudo do sistema.
 
-No estudo de sistemas lineares duas abordagem se destacam: a da representação do sistema por funções de transferências e pela representação no espaços de estados. A funções de transferências caracterizam por descrever a dinâmica de um sistema mediante a relação das variáveis de entradas com as de saída. Já a representação no espaço de estados permite conhecer internamente o sistema, visto que utiliza-se das variáveis internas para modelar o problema.
+No estudo de sistemas lineares duas abordagem se destacam: a da representa??o do sistema por fun??es de transfer?ncias e pela representa??o no espa?os de estados. A fun??es de transfer?ncias caracterizam por descrever a din?mica de um sistema mediante a rela??o das vari?veis de entradas com as de sa?da. J? a representa??o no espa?o de estados permite conhecer internamente o sistema, visto que utiliza-se das vari?veis internas para modelar o problema.
 
-Algumas hipóteses são recorrentemente estabelecidas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade, invariância no tempo e concentração de parâmetros.
+Algumas hip?teses s?o recorrentemente estabelecidas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade, invari?ncia no tempo e concentra??o de par?metros.
 
-Neste trabalho estuda-se um sistema linear estocástico e estático, que apesar de contínuo, será tratado discretamente, utilizando filtro de Kalman para a estimação da variação de posição perante um sistema com erro de medidas de posição.
+Neste trabalho estuda-se um sistema linear estoc?stico e est?tico, que apesar de cont?nuo, ser? tratado discretamente, utilizando filtro de Kalman para a estima??o da varia??o de posi??o perante um sistema com erro de medidas de posi??o.
+
+
+FÃ³rmulas
+
+$x_{k+1} = Ax_{k} + Bu_{k} +w_k$
+
+$y_k = Cx_k +z_k$
+
+$x_{k+1} = 
+  \begin{bmatrix}
+    1 & t \\
+    0 & 1 
+  \end{bmatrix} x_k + \begin{bmatrix}
+\frac{t^2}{2} & t \end{bmatrix} u_k + w_k$
+
+$y_k = \begin{bmatrix}
+1 & 0 \end{bmatrix}  x_k + z_k$
 
 
 

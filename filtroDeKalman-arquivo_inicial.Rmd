@@ -3,6 +3,21 @@ title: ''
 output: pdf_document
 ---
 
+Introdução
+
+Para compreender um sistema real geralmente se recorre a um modelo matemático, que é uma representação aproximada da realidade. Existem duas formas básicas de estruturar um modelo: pela abordagem fenomenológica ou pela abordagem empírica. Enquanto aquela exige um conhecimento prévio da natureza de um sistema, essa os modelos são construídos paralelamente ao experimento, sem exigir um conhecimento da essência do sistema.
+
+Do modo geral, os modelos podem ser classificados como estáticos ou dinâmicos, discretos ou contínuos, determinísticos ou estocásticos, paramétricos ou não paramétricos, lineares ou não lineares. Conforme a classificação, que não são mutuamente excludentes, têm-se as ferramentas adequadas para o estudo do sistema.
+
+Neste trabalho estuda-se um sistema linear estocástico e estático, que apesar de contínuos, será tratado discretamente.
+
+No estudo de sistemas lineares duas abordagem se destacam: a da representação do sistema por funções de transferências e pela representação no espaços de estados. A funções de transferências caracterizam por descrever a dinâmica de um sistema mediante a relação das variáveis de entradas com da saída. Já a representação no espaços de estados permite conhecer internamente o sistema, visto que utiliza-se das variáveis internas para modelar o problema.
+
+Algumas hipóteses são recorrentemente estabelecidadas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade, invariância no tempo e concentração de parâmetros.
+
+
+
+
 ```{r functions_definition, echo=FALSE}
 
 

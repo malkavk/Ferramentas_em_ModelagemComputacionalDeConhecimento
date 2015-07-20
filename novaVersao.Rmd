@@ -17,13 +17,16 @@ A abordagem escolhida foi por representação no espaços de estados, mediante uso 
 
 Dentre os estimadores recursivos, o filtro de Kalman, que é objeto de estudo deste trabalho, tem grande destaque. Suas aplicaçãoes são diversas, devido a qualidade de suas estimativas.
 
-Algumas hipóteses são recorrentemente estabelecidadas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade, invariância no tempo e concentração de parâmetros. Imporemos essas hipóteses para estudar um movimento linear uniformemente variado sobre influências de ruídos.
+Algumas hipóteses são recorrentemente estabelecidadas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade, invariância no tempo e concentração de parâmetros. 
 
 --
 Outra seção
 --
 
-O filtro de kalman é um estimador recursivo de mínimos quadrados, já que tenta minimizar os erros quadráticos. Foi criado por Rudolf Kalman na década de 60, na área de engenharia de controle, com o objetivo de filtrar dados discretos.
+O filtro de kalman é um estimador recursivo de mínimos quadrados, já que tenta minimizar os erros quadráticos. Foi criado por Rudolf Kalman na década de 60, na área de engenharia de controle, com o objetivo de filtrar dados discretos. É um dos mais utilizados algoritmos de fusão de dados atualmente.
+Usa-se o filtro de kalman quando deseja-se filtrar ruídos e estimar parâmetros de interesse. Por exemplo, usa-se o filtro de kalman no sistema GPS, nas transmissões de rádio e etc.
+
+
 
 O filtro de kalman apoia-se em algumas premissas, a saber:
 
@@ -40,14 +43,41 @@ De modo geral, tem-se:
 
 Equação de estado:
 
-bla bla bla
+$x_{k+1} = Ax_{k} + Bu_{k} +w_k$
+
+$y_k = Cx_k +z_k$
+
+$x_{k+1} = 
+  \begin{bmatrix}
+    1 & t \\
+    0 & 1 
+  \end{bmatrix} x_k + \begin{bmatrix}
+\frac{t^2}{2} & t \end{bmatrix} u_k + w_k$
+
+
 
 Equação de medição
 
-bla bla bla
+$y_k = \begin{bmatrix}
+1 & 0 \end{bmatrix}  x_k + z_k$
 
 
 
+Este trabalho aborda o uso de filtro de kalman em um sistema que se move em um movimento linear uniformemente variado sobre influências de ruídos. Por fim, avalia a qualidade do filto de kalman na estimativa da posição do veículo por meio de um teste de hipótese qui-quadrado nos dados referentes da inovação. 
+
+A figura ???? abaixo expõe sucitamente o princípio de funcionamento do filtro de kalman.
+
+1) Realiza-se uma medição da posição. Porém  não é confiável a medida, pois existem ruídos. 
+
+2) Realiza-se então uma predição baseada na medida anterior. 
+
+3) Combina-se os dados, a medida e estimativa anterior
+
+4) A combinação dos dois melhora significativamente a capacidade da nova predição.
+
+
+
+ 
 
 
 ```{r functions_definition, echo=FALSE}

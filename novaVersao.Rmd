@@ -1,0 +1,243 @@
+---
+title: ''
+output: pdf_document
+---
+
+Introdução
+
+Para compreender um sistema real geralmente se recorre a um modelo matemático, que é uma representação aproximada da realidade. Existem duas formas básicas de estruturar um modelo: pela abordagem fenomenológica ou pela abordagem empírica. Enquanto aquela exige um conhecimento prévio da natureza de um sistema, essa os modelos são construídos paralelamente ao experimento, sem exigir um conhecimento da essência do sistema.
+
+Do modo geral, os modelos podem ser classificados como estáticos ou dinâmicos, discretos ou contínuos, determinísticos ou estocásticos, paramétricos ou não paramétricos, lineares ou não lineares. Conforme a classificação, que não são mutuamente excludentes, têm-se as ferramentas adequadas para o estudo do sistema.
+
+Neste trabalho estuda-se um sistema linear estocástico e estático, que apesar de contínuos, será tratado discretamente.
+
+No estudo de sistemas lineares duas abordagem se destacam: a da representação do sistema por funções de transferências e pela representação no espaços de estados. A funções de transferências caracterizam por descrever a dinâmica de um sistema mediante a relação das variáveis de entradas com da saída. Já a representação no espaços de estados permite conhecer internamente o sistema, visto que utiliza-se das variáveis internas para modelar o problema.
+
+A abordagem escolhida foi por representação no espaços de estados, mediante uso de um estimador recursivo. Um estimador recursivo permite estimar o estado do sistema usando as estimativas imediatamente anterior.
+
+Dentre os estimadores recursivos, o filtro de Kalman, que é objeto de estudo deste trabalho, tem grande destaque. Suas aplicaçãoes são diversas, devido a qualidade de suas estimativas.
+
+Algumas hipóteses são recorrentemente estabelecidadas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade, invariância no tempo e concentração de parâmetros. Imporemos essas hipóteses para estudar um movimento linear uniformemente variado sobre influências de ruídos.
+
+--
+Outra seção
+--
+
+O filtro de kalman é um estimador recursivo de mínimos quadrados, já que tenta minimizar os erros quadráticos. Foi criado por Rudolf Kalman na década de 60, na área de engenharia de controle, com o objetivo de filtrar dados discretos.
+
+O filtro de kalman apoia-se em algumas premissas, a saber:
+
+1) os ruídos estão normalmente distribuídos;
+
+2) o valor médio dos ruídos é igual a zero;
+
+3) existem duas equações: a de estado e a da medição;
+
+4) as equações de estado e de medição são lineares
+
+
+De modo geral, tem-se:
+
+Equação de estado:
+
+bla bla bla
+
+Equação de medição
+
+bla bla bla
+
+
+
+
+
+```{r functions_definition, echo=FALSE}
+
+
+plotGraphs<-function(ideal,estimado,medido,sk,innt){
+  
+  t <- 1:length(ideal)
+  
+  aa <- (estimado-medido)^2/medido
+  xx <- sum(aa)
+  
+  
+  par(mfcol=c(3,1))
+  
+  plot(medido,pch=".",col="RED")
+  points(ideal,pch=".")
+  points(estimado,pch=".",col="GREEN",type="l")
+  legend("bottomright",legend=c('PosiÃ§Ã£o Medida','PosiÃ§Ã£o idealizada','PosiÃ§Ã£o Estimada'),fil=c("RED","BLACK","GREEN"))
+  
+  plot(t,aa,pch=".",type="l",col="RED");
+  points(t,-sqrt(sk)^2,pch=".",col="BLUE")
+  points(t,sqrt(sk)^2,pch=".",col="GREEN")
+  legend("bottomright",legend=c('Erros de EstimaÃ§Ã£o(InovaÃ§Ã£o)','Limite Superior do Intervalo de ConfianÃ§a','Limite Inferior do Intervalo de ConfianÃ§a'),fil=c("RED","BLUE","GREEN"))
+  
+  plot(t, innt^2,pch=".",type="l")
+}
+
+
+simular <- function(n,error,seed=12345){
+  
+  set.seed(seed)
+  n <- n                           # NÃºmero de observaÃ§Ãµes
+  
+  u <- 1                                # AceleraÃ§Ã£o idealizada para o experimento
+  
+  dt <- 0.1                             # Menor intervalo tempo medido no simulador
+  
+  measnoise <- 10                       # Erro de medida da posiÃ§Ã£o
+  accelnoise <- error                   # Erro da aceleraÃ§Ã£o
+
+  a <- matrix(data=c(1, 0, dt, 1), ncol=2,nrow=2)
+  b <- matrix(data=c(dt^2/2, dt), nrow=2, ncol=1)
+  c <- matrix(data=c(1,1),nrow=1,ncol=2)
+  x <- matrix(data=c(0,0),nrow=2,ncol=1)# PosiÃ§Ã£o inicial
+  xhat <- matrix(data=c(14,14),nrow=2,ncol=1)                             # PosiÃ§Ã£o estimada inicial
+  Sz <- measnoise^2                     # VariÃ¢ncia do ruÃ­do da medida
+  Sw <- accelnoise^2*matrix(data=c(dt^4, dt^3/2, dt^3/2, dt^2), 
+                            nrow=2, ncol=2) # Estimativa
+  P <- matrix(data=c(15,15,15,15),nrow=2,ncol=2)     # Matriz de covariÃ¢ncia de estado (pode ser com qualquer coisa)
+  Pr <- array(dim=c(n,2,2))
+  pos <- array(dim=n)                    # PosiÃ§Ã£o idealizada (durante todo o experimento)
+  pos[1] <-0
+  poshat <- array(dim=n)                  # PosiÃ§Ã£o estimada (durante todo o experimento)
+  poshat[1] <- 0 
+  posmeas <- array(dim=n)                # PosiÃ§Ã£o medida (durante todo o experimento)
+  posmeas[1] <- 0
+  vel <- array(dim=n)                    # Velocidade idealizada (durante todo o experimento)
+  vel[1] <- 0
+  velhat <- array(dim=n)                 # Velocidade estimada (durante todo o experimento)
+  velhat[1] <- 0
+  zz <- array(dim=n)                     # PosiÃ§Ã£o + ruÃ­do (durante todo o experimento)
+  zz[1] <- 0
+  
+  Sk <- array(dim=n)
+  qk <- array(dim=n)
+  Innt <- array(dim=n)
+  
+  for(t in 1:n){
+    ProcessNoise <- accelnoise * matrix(data=c(dt^2/2*rnorm(n=1), dt*rnorm(n=1)),
+                                        nrow=2, ncol=1) # RuÃ­do
+    x <- a%*%x + b*u + ProcessNoise   # PosiÃ§Ã£o "correta" + ruÃ­do
+    MeasNoise <- measnoise * rnorm(n=1,sd = accelnoise) # RuÃ­do da mediÃ§Ã£o
+    y <- c%*%x + MeasNoise              # MediÃ§Ã£o do ruÃ­do
+    xhat <- a%*%xhat + b%*%u            # EstimaÃ§Ã£o da posiÃ§Ã£o
+    Inn <- y - c%*%xhat                 # Matriz erro (innovation)
+    
+    s <- c%*%P%*%t(c) + Sz
+    
+    K <- a%*%P%*%t(c)%*%solve(s)        # Ganho
+    
+    xhat <- xhat + K%*%Inn              # CorreÃ§Ã£o da estimaÃ§Ã£o
+    Pr[t,,] <- P
+    P <- a%*%P%*%t(a) - a%*%P%*%t(c)%*%solve(s)%*%c%*%P%*%t(a) + 
+      Sw # Matriz de covariÃ¢ncia (grau de incerteza das estimativas)
+    
+    Sk[t] <- c%*%P%*%t(c)+Sz
+    
+    Innt[t] <- Inn
+    
+    qk[t] <- Inn%*%solve(c%*%P%*%t(c) +Sz)%*%Inn
+    
+    pos[t] <- x[1]
+    posmeas[t] <- y
+    poshat[t] <- xhat[1]
+    vel[t] <- x[2]
+    velhat[t] <- xhat[2]
+    
+    z <- a%*%x + b%*%u # PosiÃ§Ã£o sem ruÃ­do (idealizada)
+    zz[t] <- z[1]
+  }
+
+  poshatComp<-chisq.test(matrix(data=c(pos-min(posmeas),poshat-min(posmeas)),nrow=n,ncol=2))
+  
+  
+  posmeasComp<-chisq.test(matrix(data=c(posmeas-min(posmeas),pos-min(posmeas)),nrow=n,ncol=2))
+  pose <- data.frame(pos=pos,poshat=poshat,posmeas=posmeas,sk=Sk,innt=Innt)
+  return <- c(poshatComp,posmeasComp,pose)
+}
+```
+
+
+Podemos fazer consultas sobres os dados retornados pela simulaÃ§Ã£o. Percebam que nÃ£o foram usados todos (olhando os Ã­ndices da variÃ¡vel simulado), os outros dados sÃ£o dados do teste $\chi^2$ criados a longo do teste em si. NÃ£o creio que sirvam de muita coisa, entÃ£o deixei de fora.
+
+Os valores recuperados podem ser exibidos em chunks (com formataÃ§Ã£o padrÃ£o), ou *inline*, onde podemos aplicar formataÃ§Ã£o Markdown.
+
+Notem que os valores recuperados e usados *inline* estÃ£o, em sua maioria, entre \$, isto devido problemas que podem ocorrer com nÃºmeros expressos em notaÃ§Ã£o cientÃ­fica, que o Latex sabe trabalhar, mas o Markdown, nÃ£o. 
+
+SimulaÃ§Ã£o para n=200
+--------------------
+
+Segue abaixo modelo de simulaÃ§Ãµes
+
+```{r simulation_call_1, echo=FALSE}
+simulado <- simular(200,3) #Simula
+
+
+pos <- as.matrix(simulado[19]$pos)
+poshat <- as.matrix(simulado[20]$poshat)
+posmeas <- as.matrix(simulado[21]$posmeas)
+sk <- as.matrix(simulado[22]$sk)
+innt <- as.matrix(simulado[23]$innt)
+```
+
+Para este exemplo foi realizada simulaÃ§Ã£o usando intervalo de tempo de `r length(sk)*0.1` segundos.
+
+O mÃ©todo usado foi: `r simulado[4]$method`.
+
+Para comparaÃ§Ã£o entre a posiÃ§Ã£o ideal e a estimada foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[1]$statistic`$
+- $\upsilon$: $`r simulado[2]$parameter`$
+- Probabilidade de SemelhanÃ§a: $`r simulado[3]$p.value`$
+
+Para comparaÃ§Ã£o entre a posiÃ§Ã£o ideal e a medida foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[10]$statistic`$
+- $\upsilon$: $`r simulado[11]$parameter`$
+- Probabilidade de SemelhanÃ§a: $`r simulado[12]$p.value`$
+
+Plotando os grÃ¡ficos da simulaÃ§Ã£o
+
+```{r simulation_plot_1, echo=FALSE,fig.height=10,fig.width=8}
+plotGraphs(pos, poshat, posmeas, sk, innt)
+```
+
+
+```{r simulation_call_2, echo=FALSE}
+simulado <- simular(1000,3) #Simula
+
+
+pos <- as.matrix(simulado[19]$pos)
+poshat <- as.matrix(simulado[20]$poshat)
+posmeas <- as.matrix(simulado[21]$posmeas)
+sk <- as.matrix(simulado[22]$sk)
+innt <- as.matrix(simulado[23]$innt)
+```
+
+SimulaÃ§Ã£o para n=1000
+---------------------
+
+Para este exemplo foi realizada simulaÃ§Ã£o usando intervalo de tempo de `r length(sk)*0.1` segundos.
+
+O mÃ©todo usado foi: `r simulado[4]$method`.
+
+Para comparaÃ§Ã£o entre a posiÃ§Ã£o ideal e a estimada foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[1]$statistic`$
+- $\upsilon$: $`r simulado[2]$parameter`$
+- Probabilidade de SemelhanÃ§a: $`r simulado[3]$p.value`$
+
+Para comparaÃ§Ã£o entre a posiÃ§Ã£o ideal e a medida foram obtidos os seguinte valores:
+
+- $\chi^2$: $`r simulado[10]$statistic`$
+- $\upsilon$: $`r simulado[11]$parameter`$
+- Probabilidade de SemelhanÃ§a: $`r simulado[12]$p.value`$
+
+Plotando os grÃ¡ficos da simulaÃ§Ã£o
+
+```{r simulation_plot_2, echo=FALSE,fig.height=10,fig.width=8}
+plotGraphs(pos, poshat, posmeas, sk, innt)
+```
+

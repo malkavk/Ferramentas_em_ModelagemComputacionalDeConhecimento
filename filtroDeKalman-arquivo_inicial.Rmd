@@ -17,21 +17,36 @@ references:
 
 Introdução
 --------------------------------------------------------------------
-
+=======
+Existem duas formas básicas de estruturar um modelo: pela abordagem fenomenológica ou pela abordagem empírica. Na primeira há exigência de um conhecimento prévio da natureza de um sistema, na segunda os modelos são construídos paralelamente ao experimento, sem exigir um conhecimento da essência do sistema.
+>>>>>>> Stashed changes
 
 Existem duas formas básicas de estruturar um modelo: pela abordagem fenomenológica ou pela abordagem empírica. Na primeira há exigência de um conhecimento prévio da natureza de um sistema, na segunda os modelos são construídos paralelamente ao experimento, sem exigir um conhecimento da essência do sistema.
 
-Do modo geral, os modelos podem ser classificados como est?ticos ou din?micos, discretos ou cont?nuos, determin?sticos ou estocásticos, paramâtricos ou não paramétricos, lineares ou não lineares. Conforme a classificação, que não são mutuamente excludentes, têm-se as ferramentas adequadas para o estudo do sistema.
+Do modo geral, os modelos podem ser classificados como estáticos ou dinâmicos, discretos ou contínuos, determinísticos ou estocásticos, paramétricos ou não paramétricos, lineares ou não lineares. Conforme a classificação, que não são mutuamente excludentes, têm-se as ferramentas adequadas para o estudo do sistema.
 
 No estudo de sistemas lineares duas abordagem se destacam: a da representação do sistema por funções de transferências e pela representação no espaços de estados. A funções de transferências caracterizam por descrever a dinâmica de um sistema mediante a relação das variáveis de entradas com as de saída. Já a representação no espaço de estados permite conhecer internamente o sistema, visto que utiliza-se das variáveis internas para modelar o problema.
 
-Algumas hipóteses são recorrentemente estabelecidas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade, invariância no tempo e concentração de parâmetros.
+Algumas hipóteses são recorrentemente estabelecidas ao se identificar um sistema, visto que simplificam o tratamento do sistema, a saber, linearidade,invariância no tempo e concentração de parâmetros.
 
 Neste trabalho estuda-se um sistema linear estocástico e estítico, que apesar de contínuo, será tratado discretamente, utilizando filtro de Kalman para a estimação da variação de posição perante um sistema com erro de medidas de posição.
 
+Filto de Kalman
+--------------------------------------------------------------------
+O filtro de kalman é um estimador recursivo de mínimos quadrados, já que tenta minimizar os erros quadráticos. Foi criado por Rudolf Kalman na década de 60, na área de engenharia de controle, com o objetivo de filtrar dados discretos. É um dos mais utilizados algoritmos de fusão de dados atualmente.
+Usa-se o filtro de kalman quando deseja-se filtrar ruídos e estimar parâmetros de interesse. Por exemplo, usa-se o filtro de kalman no sistema GPS, nas transmissões de rádio e etc.
 
 
-Fórmulas
+O filtro de kalman apoia-se em algumas premissas, a saber:
+
+1) os ruídos estão normalmente distribuídos;
+
+2) o valor médio dos ruídos é igual a zero;
+
+3) existem duas equações: a de estado e a da medição;
+
+4) as equações de estado e de medição são lineares.
+
 
 $x_{k+1} = Ax_{k} + Bu_{k} +w_k$
 
@@ -53,7 +68,21 @@ $\widehat{x}_{k+1} = (A\widehat{x}_k + Bu_k) + K_k (y_{k+1}-C\widehat{x}_{k})$
   
 $P_{k+1} = AP_kA^T+S_w-AP_kC^TS_z^{-1}CP_kA^T$
 
-```{r functions_definition, echo=TRUE}
+
+Este trabalho aborda o uso de filtro de kalman em um sistema que se move em um movimento linear uniformemente variado sobre influências de ruídos. Por fim, avalia a qualidade do filto de kalman na estimativa da posição do veículo por meio de um teste de hipótese qui-quadrado nos dados referentes da inovação. 
+
+A figura ???? abaixo expõe sucitamente o princípio de funcionamento do filtro de kalman.
+
+1) Realiza-se uma medição da posição. Porém  não é confiável a medida, pois existem ruídos. 
+
+2) Realiza-se então uma predição baseada na medida anterior. 
+
+3) Combina-se os dados, a medida e estimativa anterior
+
+4) A combinação dos dois melhora significativamente a nova predição.
+
+
+```{r functions_definition, echo=FALSE}
 
 
 plotGraphs<-function(ideal,estimado,medido,sk,innt){
@@ -88,7 +117,7 @@ Os valores recuperados podem ser exibidos em chunks (com formatação padrão), 
 
 Notem que os valores recuperados e usados *inline* estão, em sua maioria, entre \$, isto devido problemas que podem ocorrer com números expressos em notação científica, que o Latex sabe trabalhar, mas o Markdown, não. 
 
-```{r functions_definition, echo=TRUE}
+```{r functions_definition1, echo=TRUE}
 
 simular <- function(n,error,seed=12345){
   
@@ -106,23 +135,27 @@ simular <- function(n,error,seed=12345){
   b <- matrix(data=c(dt^2/2, dt), nrow=2, ncol=1)
   c <- matrix(data=c(1,1),nrow=1,ncol=2)
   x <- matrix(data=c(0,0),nrow=2,ncol=1)# Posição inicial
-  xhat <- matrix(data=c(14,14),nrow=2,ncol=1)                             # Posição estimada inicial
+  xhat <- matrix(data=c(14,14),nrow=2,ncol=1)                             
+  # Posição estimada inicial
   Sz <- measnoise^2                     # Variância do ruído da medida
   Sw <- accelnoise^2*matrix(data=c(dt^4, dt^3/2, dt^3/2, dt^2), 
                             nrow=2, ncol=2) # Estimativa
-  P <- matrix(data=c(15,15,15,15),nrow=2,ncol=2)     # Matriz de covariância de estado (pode ser com qualquer coisa)
+  # Matriz de covariância de estado (pode ser com qualquer coisa)
+  P <- matrix(data=c(15,15,15,15),nrow=2,ncol=2)    
   Pr <- array(dim=c(n,2,2))
-  pos <- array(dim=n)                    # Posição idealizada (durante todo o experimento)
+  
+  #Posição idealizada (durante todo o experimento)
+  pos <- array(dim=n) 
   pos[1] <-0
-  poshat <- array(dim=n)                  # Posição estimada (durante todo o experimento)
+  poshat <- array(dim=n)              # Posição estimada (durante todo o experimento)
   poshat[1] <- 0 
-  posmeas <- array(dim=n)                # Posição medida (durante todo o experimento)
+  posmeas <- array(dim=n)             # Posição medida (durante todo o experimento)
   posmeas[1] <- 0
-  vel <- array(dim=n)                    # Velocidade idealizada (durante todo o experimento)
+  vel <- array(dim=n)                 # Velocidade idealizada (durante todo o experimento)
   vel[1] <- 0
-  velhat <- array(dim=n)                 # Velocidade estimada (durante todo o experimento)
+  velhat <- array(dim=n)              # Velocidade estimada (durante todo o experimento)
   velhat[1] <- 0
-  zz <- array(dim=n)                     # Posição + ruído (durante todo o experimento)
+  zz <- array(dim=n)                  # Posição + ruído (durante todo o experimento)
   zz[1] <- 0
   
   Sk <- array(dim=n)

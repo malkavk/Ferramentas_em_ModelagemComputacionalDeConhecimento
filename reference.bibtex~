@@ -23,9 +23,3 @@
   volume = 29,
   year = 2012
 }
-
-@MISC{Simon,
-    author = {Dan Simon},
-    title = {Kalman Filtering},
-    year = 2001
-}
